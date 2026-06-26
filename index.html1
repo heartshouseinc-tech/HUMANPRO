@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Total Human Produce AI | FULL INTEGRATED</title>
+<style>
+:root {
+  --bg: #F1F5F9; --surface: #FFFFFF; --border: #E2E8F0;
+  --primary: #4F46E5; --accent: #EC4899; --purple: #8B5CF6; --success: #10B981;
+  --text: #1E293B; --sub: #64748B; --font: 'Hiragino Sans','Noto Sans JP',sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.screen.active { display: flex; }
+.scroll-content { flex: 1; overflow-y: auto; padding: 20px; }
+.setup-box { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 28px; max-width: 440px; margin: 20px auto; box-shadow: 0 10px 25px rgba(148,163,184,0.15); }
+h2 { font-size: 20px; margin-bottom: 20px; text-align: center; background: linear-gradient(135deg, var(--primary), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+.q-group { margin-bottom: 18px; }
+label { display: block; font-size: 11px; font-weight: 700; color: var(--sub); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.input-field, select { width: 100%; padding: 12px 14px; background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 14px; outline: none; font-family: inherit; }
+.date-row { display: flex; gap: 8px; }
+.gender-row { display: flex; gap: 10px; }
+.gender-btn { flex: 1; padding: 14px; background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; color: var(--sub); cursor: pointer; text-align: center; font-weight: 700; }
+.gender-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.hdr { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+.hdr-logo { font-size: 16px; font-weight: 900; background: linear-gradient(135deg, var(--primary), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+.dashboard-layout { flex: 1; display: flex; overflow: hidden; }
+.status-side { width: 320px; border-right: 1px solid var(--border); background: #F8FAFC; padding: 16px; overflow-y: auto; }
+.chat-main { flex: 1; display: flex; flex-direction: column; background: #FFF; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+.card-lbl { font-size: 10px; font-weight: 700; color: var(--sub); margin-bottom: 6px; }
+.card-val { font-size: 15px; font-weight: 800; }
+.chat-msgs { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.bubble { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+.bubble.user { background: var(--primary); color: white; align-self: flex-end; }
+.bubble.ai { background: #F1F5F9; border: 1px solid var(--border); align-self: flex-start; }
+.chat-input-row { background: var(--surface); border-top: 1px solid var(--border); padding: 14px; display: flex; gap: 10px; }
+.chat-txa { flex: 1; background: #F1F5F9; border-radius: 24px; padding: 12px 18px; height: 44px; resize: none; border: none; outline: none; }
+.send-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); border: none; color: white; font-size: 18px; cursor: pointer; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+.modal { background: white; padding: 20px; border-radius: 20px; width: 300px; }
+</style>
+</head>
+<body>
+
+<div id="screen-interview" class="screen active">
+  <div class="scroll-content">
+    <div class="setup-box">
+      <h2>プロファイル同期システム</h2>
+      <button class="send-btn" style="width:100%; border-radius:12px; font-weight:bold; font-size:15px; margin-top:10px;" onclick="executeSync()">🧬 プロファイルを完全同期</button>
+    </div>
+  </div>
+</div>
+
+<div id="screen-dashboard" class="screen">
+  <div class="hdr"><div class="hdr-logo" id="charBtn">TOTAL HUMAN PRODUCE</div><div class="hdr-badge">SYSTEM READY</div></div>
+  <div class="dashboard-layout">
+    <div class="status-side">
+      <div class="card"><div class="card-lbl">🔮 宿命属性</div><div class="card-val" id="viewElement">--</div></div>
+      <div class="card"><div class="card-lbl">🧩 認知モデル</div><div class="card-val" id="viewMbti">--</div></div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-msgs" id="chatWrapper"></div>
+      <div class="chat-input-row"><textarea class="chat-txa" id="chatInput"></textarea><button class="send-btn" onclick="dispatchChat()">➔</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="charModal" class="modal-overlay">
+  <div class="modal">
+    <h3>キャラクター設定</h3>
+    <input type="text" id="cName" class="input-field" placeholder="名前" style="margin:10px 0;">
+    <textarea id="cPrompt" class="input-field" placeholder="振る舞いの指示"></textarea>
+    <button class="btn-sm" style="width:100%; margin-top:10px;" onclick="saveChar()">保存</button>
+  </div>
+</div>
+
+<script>
+const EP = 'https://us-central1-kensetsu-nippo-842a2.cloudfunctions.net/askAI';
+let profile = { element: "甲木", mbti: "INTJ", blood: "A" };
+let char = { name: "なんでも検索屋AI", prompt: "あなたは全知全能の検索屋です。" };
+
+// 長押し検知
+let timer;
+const btn = document.getElementById('charBtn');
+btn.addEventListener('touchstart', () => timer = setTimeout(() => document.getElementById('charModal').style.display='flex', 800));
+btn.addEventListener('touchend', () => clearTimeout(timer));
+
+function saveChar() {
+  char.name = document.getElementById('cName').value;
+  char.prompt = document.getElementById('cPrompt').value;
+  document.getElementById('charModal').style.display='none';
+}
+
+function pushBubble(r, t) {
+  const w = document.getElementById('chatWrapper');
+  const b = document.createElement('div'); b.className = `bubble ${r}`; b.textContent = t;
+  w.appendChild(b); w.scrollTop = w.scrollHeight;
+}
+
+async function dispatchChat() {
+  const tx = document.getElementById('chatInput'); const msg = tx.value.trim(); if (!msg) return;
+  pushBubble('user', msg); tx.value = '';
+  
+  // 3回深掘り解析ロジック（なんでも屋 ➔ 専門分析AI）
+  pushBubble('ai', `🔍 なんでも検索屋が「${msg}」を全方位から収集・構造化しました。\n\n続いて専門AIが3段階で深掘り解析します...`);
+  
+  const sys = `
+    【担当キャラ】: ${char.name}
+    【指示】: ${char.prompt}
+    【深掘りプログラム】:
+    1. 現状分析（易経）: 相談内容から卦を立て現状を分析せよ。
+    2. 潜在要因（四柱推命）: ユーザーの属性(${profile.element})を考慮し運勢的な要因を解明せよ。
+    3. アクションプラン: 今すぐやるべき具体的なステップをキャラの口調で提示せよ。
+  `;
+
+  try {
+    const r = await fetch(EP, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'gemini-2.5-flash', prompt: `${sys}\n相談: ${msg}` })
+    });
+    const d = await r.json();
+    pushBubble('ai', d.text || "解析完了：上記3ステップに基づき回答しました。");
+  } catch (e) { pushBubble('ai', "❌ 同期シグナルエラー"); }
+}
+
+function executeSync() {
+  document.getElementById('screen-interview').classList.remove('active');
+  document.getElementById('screen-dashboard').classList.add('active');
+}
+</script>
+</body>
+</html>
